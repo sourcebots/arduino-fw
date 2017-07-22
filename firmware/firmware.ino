@@ -23,20 +23,33 @@ void setup() {
 class CommandHandler {
 public:
   String command;
-  CommandError (*run)(const String& argument);
+  CommandError (*run)(String argument);
   String helpMessage;
 
-  CommandHandler(String cmd, CommandError (*runner)(const String&), String help);
+  CommandHandler(String cmd, CommandError (*runner)(String), String help);
 };
 
-CommandHandler::CommandHandler(String cmd, CommandError (*runner)(const String&), String help)
+CommandHandler::CommandHandler(String cmd, CommandError (*runner)(String), String help)
 : command(cmd), run(runner), helpMessage(help)
 {
 }
 
-static CommandError run_help(const String& argument);
+static String pop_option(String& argument) {
+  int separatorIndex = argument.indexOf(' ');
+  if (separatorIndex == -1) {
+    String copy(argument);
+    argument = "";
+    return copy;
+  } else {
+    String first_argument(argument.substring(0, separatorIndex));
+    argument = argument.substring(separatorIndex + 1);
+    return first_argument;
+  }
+}
 
-static CommandError led(const String& argument) {
+static CommandError run_help(String argument);
+
+static CommandError led(String argument) {
   if (argument == "on") {
     digitalWrite(LED_BUILTIN, HIGH);
   } else if (argument == "off") {
@@ -47,16 +60,17 @@ static CommandError led(const String& argument) {
   return OK;
 }
 
-static CommandError servo(const String& argument) {
+static CommandError servo(String argument) {
   // Do a little silly string hacking dance to extract both arguments
-  auto spaceIndex = argument.indexOf(' ');
-  if (spaceIndex == -1) {
-    return COMMAND_ERROR("servo takes two arguments");
+  String servoArg = pop_option(argument);
+  String widthArg = pop_option(argument);
+
+  if (argument.length() || !servoArg.length() || !widthArg.length()) {
+    return COMMAND_ERROR("servo takes exactly two arguments");
   }
-  auto firstArgument = argument.substring(0, spaceIndex);
-  auto secondArgument = argument.substring(spaceIndex + 1);
-  auto width = secondArgument.toInt();
-  auto servo = firstArgument.toInt();
+
+  auto width = widthArg.toInt();
+  auto servo = servoArg.toInt();
   if (servo < 0 || servo > 15) {
     return COMMAND_ERROR("servo index out of range");
   }
@@ -67,7 +81,7 @@ static CommandError servo(const String& argument) {
   return OK;
 }
 
-static CommandError get_version(const String& argument) {
+static CommandError get_version(String argument) {
   Serial.write("> ");
   Serial.write(FIRMWARE_VERSION.c_str());
   Serial.write('\n');
@@ -111,7 +125,7 @@ static void handle_command(const String& cmd) {
   Serial.write("- Error: unknown command\n");
 }
 
-static CommandError run_help(const String& argument) {
+static CommandError run_help(String argument) {
   if (argument == "") {
     Serial.write("# commands: \n");
     for (int i = 0; i < sizeof(commands) / sizeof(CommandHandler); ++i) {
