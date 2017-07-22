@@ -134,6 +134,25 @@ static CommandError read_pin(String argument) {
   return OK;
 }
 
+static void read_analogue_pin_to_serial(const char* name, int pin) {
+  int reading = analogRead(pin);
+  double mungedReading = (double)reading * (5.0 / 1024.0);
+  Serial.write("> ");
+  Serial.write(name);
+  Serial.write(" = ");
+  Serial.println(mungedReading);
+}
+
+static CommandError analogue_read(String argument) {
+  read_analogue_pin_to_serial("a0", A0);
+  read_analogue_pin_to_serial("a1", A1);
+  read_analogue_pin_to_serial("a2", A2);
+  read_analogue_pin_to_serial("a3", A3);
+  read_analogue_pin_to_serial("a4", A4);
+  read_analogue_pin_to_serial("a5", A5);
+  return OK;
+}
+
 static CommandError get_version(String argument) {
   Serial.write("> ");
   Serial.write(FIRMWARE_VERSION.c_str());
@@ -148,6 +167,7 @@ static const CommandHandler commands[] = {
   CommandHandler("version", &get_version, "get firmware version"),
   CommandHandler("gpio-write", &write_pin, "set output from GPIO pin"),
   CommandHandler("gpio-read", &read_pin, "get digital input from GPIO pin"),
+  CommandHandler("analogue-read", &analogue_read, "get all analogue inputs"),
 };
 
 static void dispatch_command(const class CommandHandler& handler, const String& argument) {
