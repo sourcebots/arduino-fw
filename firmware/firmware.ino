@@ -180,5 +180,7 @@ static void process_serial() {
 }
 
 void loop() {
-  process_serial();
+  while (Serial.available()) {
+    process_serial();
+  }
 }
