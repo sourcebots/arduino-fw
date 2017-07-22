@@ -30,6 +30,17 @@ class Arduino(object):
     def set_input_pullup(self, pin):
         self._command('gpio-write', pin, 'pullup')
 
+    def analogue_read(self):
+        settings = [
+            x.split(' ')
+            for x in self._command('analogue-read')
+        ]
+
+        return {
+            name: float(value)
+            for name, value in settings
+        }
+
     def _command(self, command, *args):
         full_command = ' '.join([command] + [str(x) for x in args])
         self.port.write((full_command + '\n').encode('utf-8'))

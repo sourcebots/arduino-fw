@@ -139,7 +139,7 @@ static void read_analogue_pin_to_serial(const char* name, int pin) {
   double mungedReading = (double)reading * (5.0 / 1024.0);
   Serial.write("> ");
   Serial.write(name);
-  Serial.write(" = ");
+  Serial.write(' ');
   Serial.println(mungedReading);
 }
 
