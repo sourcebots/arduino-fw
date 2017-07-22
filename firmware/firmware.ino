@@ -61,7 +61,6 @@ static CommandError led(String argument) {
 }
 
 static CommandError servo(String argument) {
-  // Do a little silly string hacking dance to extract both arguments
   String servoArg = pop_option(argument);
   String widthArg = pop_option(argument);
 
