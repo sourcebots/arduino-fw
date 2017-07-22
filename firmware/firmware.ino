@@ -83,31 +83,29 @@ static const CommandHandler commands[] = {
   CommandHandler("version", &get_version, "get firmware version"),
 };
 
+static void dispatch_command(const class CommandHandler& handler, const String& argument) {
+  auto err = handler.run(argument);
+  if (err == OK) {
+    Serial.write("+ OK\n");
+  } else {
+    Serial.write("- Error: ");
+    Serial.write(err.c_str());
+    Serial.write('\n');
+  }
+}
+
 static void handle_command(const String& cmd) {
   for (int i = 0; i < sizeof(commands) / sizeof(CommandHandler); ++i) {
     const CommandHandler& handler = commands[i];
 
     if (handler.command == cmd) {
-      // no arguments
-      auto err = handler.run("");
-      if (err == OK) {
-        Serial.write("+ OK\n");
-      } else {
-        Serial.write("- Error: ");
-        Serial.write(err.c_str());
-        Serial.write('\n');
-      }
+      dispatch_command(handler, "");
       return;
     } else if (cmd.startsWith(handler.command + " ")) {
-      // has arguments
-      auto err = handler.run(cmd.substring(handler.command.length() + 1));
-      if (err == OK) {
-        Serial.write("+ OK\n");
-      } else {
-        Serial.write("- Error: ");
-        Serial.write(err.c_str());
-        Serial.write('\n');
-      }
+      dispatch_command(
+        handler,
+        cmd.substring(handler.command.length() + 1)
+      );
       return;
     }
   }
