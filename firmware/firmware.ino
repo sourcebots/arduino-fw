@@ -18,8 +18,6 @@ void setup() {
 
   SERVOS.begin();
   SERVOS.setPWMFreq(50);
-
-  yield();
 }
 
 class CommandHandler {
