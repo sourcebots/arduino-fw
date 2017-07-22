@@ -80,6 +80,60 @@ static CommandError servo(String argument) {
   return OK;
 }
 
+static CommandError write_pin(String argument) {
+  String pinIDArg = pop_option(argument);
+  String pinStateArg = pop_option(argument);
+
+  if (argument.length() || !pinIDArg.length() || !pinStateArg.length()) {
+    return COMMAND_ERROR("need exactly two arguments: <pin> <high/low/hi-z/pullup>");
+  }
+
+  int pin = pinIDArg.toInt();
+
+  if (pin < 2 || pin > 12) {
+    return COMMAND_ERROR("pin must be between 2 and 12");
+  }
+
+  if (pinStateArg == "high") {
+    pinMode(pin, OUTPUT);
+    digitalWrite(pin, HIGH);
+  } else if (pinStateArg == "low") {
+    pinMode(pin, OUTPUT);
+    digitalWrite(pin, LOW);
+  } else if (pinStateArg == "hi-z") {
+    pinMode(pin, INPUT);
+  } else if (pinStateArg == "pullup") {
+    pinMode(pin, INPUT_PULLUP);
+  } else {
+    return COMMAND_ERROR("unknown drive state");
+  }
+  return OK;
+}
+
+static CommandError read_pin(String argument) {
+  String pinIDArg = pop_option(argument);
+
+  if (argument.length() || !pinIDArg.length()) {
+    return COMMAND_ERROR("need exactly one argument: <pin>");
+  }
+
+  int pin = pinIDArg.toInt();
+
+  if (pin < 2 || pin > 12) {
+    return COMMAND_ERROR("pin must be between 2 and 12");
+  }
+
+  auto state = digitalRead(pin);
+
+  if (state == HIGH) {
+    Serial.write("> high\n");
+  } else {
+    Serial.write("> low\n");
+  }
+
+  return OK;
+}
+
 static CommandError get_version(String argument) {
   Serial.write("> ");
   Serial.write(FIRMWARE_VERSION.c_str());
@@ -92,6 +146,8 @@ static const CommandHandler commands[] = {
   CommandHandler("led", &led, "control the debug LED (on/off)"),
   CommandHandler("servo", &servo, "control a servo <num> <width>"),
   CommandHandler("version", &get_version, "get firmware version"),
+  CommandHandler("gpio-write", &write_pin, "set output from GPIO pin"),
+  CommandHandler("gpio-read", &read_pin, "get digital input from GPIO pin"),
 };
 
 static void dispatch_command(const class CommandHandler& handler, const String& argument) {
