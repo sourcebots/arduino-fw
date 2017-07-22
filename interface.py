@@ -14,6 +14,22 @@ class Arduino(object):
     def depower_servo(self, servo):
         self.drive_servo(servo, 0)
 
+    def digital_read(self, pin):
+        (output,) = self._command('gpio-read', pin)
+        return {
+            'high': True,
+            'low': False,
+        }[output]
+
+    def digital_write(self, pin, level):
+        self._command('gpio-write', pin, 'high' if level else 'low')
+
+    def set_input(self, pin):
+        self._command('gpio-write', pin, 'hi-z')
+
+    def set_input_pullup(self, pin):
+        self._command('gpio-write', pin, 'pullup')
+
     def _command(self, command, *args):
         full_command = ' '.join([command] + [str(x) for x in args])
         self.port.write((full_command + '\n').encode('utf-8'))
