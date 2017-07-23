@@ -3,6 +3,11 @@ dependencies:
         - sudo apt-get install arduino arduino-core arduino-mk
         - git clone https://github.com/RealOrangeOne/Arturo && cd Arturo && sudo make install
 
+checkout:
+    post:
+      - git submodule sync
+      - git submodule update --init --recursive
+
 test:
     override:
         - ano build -m uno
