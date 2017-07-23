@@ -10,4 +10,4 @@ checkout:
 
 test:
     override:
-        - ano build -m uno
+        - ano build -m uno --cxxflags="-std=gnu++11"
