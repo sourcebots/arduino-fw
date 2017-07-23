@@ -1,7 +1,7 @@
 dependencies:
     pre:
         - sudo apt-get install arduino arduino-core arduino-mk
-        - git clone https://github.com/scottdarch/Arturo && cd Arturo && sudo make install
+        - git clone https://github.com/RealOrangeOne/Arturo && cd Arturo && sudo make install
 
 test:
     override:
