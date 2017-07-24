@@ -1,3 +1,8 @@
+general:
+    artifacts:
+      - .build_ano/uno/firmware.elf
+      - .build_ano/uno/firmware.hex
+
 dependencies:
     pre:
         - sudo apt-get install arduino arduino-core arduino-mk
