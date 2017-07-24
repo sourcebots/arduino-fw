@@ -7,7 +7,7 @@ dependencies:
     pre:
         - sudo apt-get install arduino arduino-core arduino-mk
         - sudo rm -rf /usr/share/arduino/libraries/Robot_Control
-        - git clone https://github.com/RealOrangeOne/Arturo && cd Arturo && sudo make install
+        - git clone https://github.com/sourcebots/Arturo && cd Arturo && sudo make install
 
 checkout:
     post:
