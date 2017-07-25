@@ -6,6 +6,7 @@ general:
 dependencies:
     pre:
         - sudo apt-get install arduino arduino-core arduino-mk
+        # This library wont build under circle, and seems to be absent locally The dependency is provided by another library, so we can delete it!
         - sudo rm -rf /usr/share/arduino/libraries/Robot_Control
         - git clone https://github.com/sourcebots/Arturo && cd Arturo && sudo make install
 
