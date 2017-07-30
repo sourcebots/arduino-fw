@@ -13,6 +13,10 @@ static Adafruit_PWMServoDriver SERVOS = Adafruit_PWMServoDriver();
 void setup() {
   // put your setup code here, to run once:
   pinMode(LED_BUILTIN, OUTPUT);
+  for (int pin = 2; pin <= 12; pin++) {
+    pinMode(pin, INPUT);
+  }
+
   Serial.begin(115200);
   Serial.setTimeout(5);
 
