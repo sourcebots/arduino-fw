@@ -148,8 +148,6 @@ static CommandError analogue_read(String argument) {
   read_analogue_pin_to_serial("a1", A1);
   read_analogue_pin_to_serial("a2", A2);
   read_analogue_pin_to_serial("a3", A3);
-  read_analogue_pin_to_serial("a4", A4);
-  read_analogue_pin_to_serial("a5", A5);
   return OK;
 }
 
