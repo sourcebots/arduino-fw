@@ -1,5 +1,11 @@
 #include <Adafruit_PWMServoDriver.h>
 
+// Multiplying by this converts round-trip duration in microseconds to distance to object in millimetres.
+static const float ULTRASOUND_COEFFICIENT = 1e-6 * 343.0 * 0.5 * 1e3;
+
+// Horrible hack because I can't include <climits> for some reason.
+static const unsigned int UINT_MAX = (unsigned int) -1;
+
 static const String FIRMWARE_VERSION = "SourceBots PWM/GPIO v0.0.1";
 
 typedef String CommandError;
@@ -155,6 +161,45 @@ static CommandError analogue_read(String argument) {
   return OK;
 }
 
+static CommandError ultrasound_read(String argument) {
+  String triggerPinStr = pop_option(argument);
+  String echoPinStr = pop_option(argument);
+
+  if (argument.length() || !triggerPinStr.length() || !echoPinStr.length()) {
+    return COMMAND_ERROR("need exactly two arguments: <trigger-pin> <echo-pin>");
+  }
+
+  int triggerPin = triggerPinStr.toInt();
+  int echoPin = echoPinStr.toInt();
+
+  // Reset trigger pin.
+  pinMode(triggerPin, OUTPUT);
+  digitalWrite(triggerPin, LOW);
+  delayMicroseconds(2);
+
+  // Pulse trigger pin.
+  digitalWrite(triggerPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(triggerPin, LOW);
+
+  // Set echo pin to input now (we don't do it earlier, since it's allowable
+  // for triggerPin and echoPin to be the same pin).
+  pinMode(echoPin, INPUT);
+
+  // Read return pulse.
+  float duration = (float) pulseIn(echoPin, HIGH);       // In microseconds.
+  float distance = duration * ULTRASOUND_COEFFICIENT;    // In millimetres.
+  distance = constrain(distance, 0.0, (float) UINT_MAX); // Ensure that the next line won't overflow.
+  unsigned int distanceInt = (unsigned int) distance;
+
+  // Print result.
+  Serial.print("> ");
+  Serial.print(distanceInt, DEC);
+  Serial.print('\n');
+
+  return OK;
+}
+
 static CommandError get_version(String argument) {
   Serial.write("> ");
   Serial.write(FIRMWARE_VERSION.c_str());
@@ -170,6 +215,7 @@ static const CommandHandler commands[] = {
   CommandHandler("gpio-write", &write_pin, "set output from GPIO pin"),
   CommandHandler("gpio-read", &read_pin, "get digital input from GPIO pin"),
   CommandHandler("analogue-read", &analogue_read, "get all analogue inputs"),
+  CommandHandler("ultrasound-read", &ultrasound_read, "read an ultrasound sensor <trigger-pin> <echo-pin>"),
 };
 
 static void dispatch_command(const class CommandHandler& handler, const String& argument) {
