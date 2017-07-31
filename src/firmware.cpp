@@ -246,7 +246,7 @@ static void handle_command(const String& cmd) {
   }
 
   String message = "- Error, unknown command: ";
-  Serial.write(message + cmd + "\n");
+  Serial.write((message + cmd + "\n").c_str());
 }
 
 static CommandError run_help(String argument) {
