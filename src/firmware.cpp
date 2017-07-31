@@ -28,6 +28,8 @@ void setup() {
 
   SERVOS.begin();
   SERVOS.setPWMFreq(50);
+
+  Serial.write("# booted\n");
 }
 
 class CommandHandler {
