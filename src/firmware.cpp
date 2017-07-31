@@ -23,7 +23,7 @@ void setup() {
     pinMode(pin, INPUT);
   }
 
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.setTimeout(5);
 
   SERVOS.begin();
