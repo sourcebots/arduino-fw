@@ -287,6 +287,13 @@ static boolean skipWS = false;
 static void process_serial() {
   auto serialInput = Serial.read();
 
+  // Allow resetting the buffer by sending a NULL. This allows for recovery
+  // from partial commands being sent or received.
+  if (serialInput == 0) {
+    serialBuffer = "";
+    return;
+  }
+
   if (serialInput == -1) {
     return;
   }
