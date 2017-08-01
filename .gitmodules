@@ -1,3 +1,6 @@
 [submodule "libraries/Adafruit-PWM-Servo-Driver-Library"]
 	path = libraries/Adafruit-PWM-Servo-Driver-Library
 	url = https://github.com/adafruit/Adafruit-PWM-Servo-Driver-Library/
+[submodule "libraries/EnableInterrupt"]
+	path = libraries/EnableInterrupt
+	url = https://github.com/GreyGnome/EnableInterrupt.git
