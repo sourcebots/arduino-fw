@@ -1,4 +1,5 @@
 #include <Adafruit_PWMServoDriver.h>
+#include <EnableInterrupt.h>
 
 // Multiplying by this converts round-trip duration in microseconds to distance to object in millimetres.
 static const float ULTRASOUND_COEFFICIENT = 1e-6 * 343.0 * 0.5 * 1e3;
@@ -11,6 +12,8 @@ static const String FIRMWARE_VERSION = "SourceBots PWM/GPIO v0.0.1";
 typedef String CommandError;
 
 static const CommandError OK = "";
+
+static int rotEncCounter = 0;
 
 #define COMMAND_ERROR(x) ((x))
 
@@ -209,6 +212,38 @@ static CommandError get_version(String argument) {
   return OK;
 }
 
+static void rotEncCallback() {
+    rotEncCounter += 1;
+}
+
+static CommandError rot_enc_start(String argument) {
+  String irLedPinStr = pop_option(argument);
+  String photoResistPinStr = pop_option(argument);
+
+  if (argument.length() || !irLedPinStr.length() || !photoResistPinStr.length()) {
+    return COMMAND_ERROR("need exactly two arguments: <ir-led-pin> <photo-resist-pin>");
+  }
+
+  int irLedPin = irLedPinStr.toInt();
+  int photoResistPin = photoResistPinStr.toInt();
+
+  rotEncCounter = 0;
+
+  pinMode(irLedPin, OUTPUT);
+  digitalWrite(irLedPin, HIGH);
+  pinMode(photoResistPin, INPUT);
+  enableInterrupt(photoResistPin, rotEncCallback, RISING);
+
+  return OK;
+}
+
+static CommandError rot_enc_read(String argument) {
+  Serial.write("> ");
+  Serial.write(rotEncCounter);
+  Serial.write('\n');
+  return OK;
+}
+
 static const CommandHandler commands[] = {
   CommandHandler("help", &run_help, "show information"),
   CommandHandler("led", &led, "control the debug LED (on/off)"),
@@ -218,6 +253,8 @@ static const CommandHandler commands[] = {
   CommandHandler("gpio-read", &read_pin, "get digital input from GPIO pin"),
   CommandHandler("analogue-read", &analogue_read, "get all analogue inputs"),
   CommandHandler("ultrasound-read", &ultrasound_read, "read an ultrasound sensor <trigger-pin> <echo-pin>"),
+  CommandHandler("rot-enc-start", &rot_enc_start, "start the rotary encoder <ir-led-pin> <photo-resist-pin>"),
+  CommandHandler("rot-enc-read", &rot_enc_read, "read the rotary encoder counter"),
 };
 
 static void dispatch_command(const class CommandHandler& handler, const String& argument) {
