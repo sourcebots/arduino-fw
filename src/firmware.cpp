@@ -1,4 +1,4 @@
-#include <limits.h>
+#include <stdint.h>
 
 #include <Adafruit_PWMServoDriver.h>
 
@@ -189,8 +189,8 @@ static CommandError ultrasound_read(int commandId, String argument) {
   // Read return pulse.
   float duration = (float) pulseIn(echoPin, HIGH);       // In microseconds.
   float distance = duration * ULTRASOUND_COEFFICIENT;    // In millimetres.
-  distance = constrain(distance, 0.0, (float) UINT_MAX); // Ensure that the next line won't overflow.
-  unsigned int distanceInt = (unsigned int) distance;
+  distance = constrain(distance, 0.0, (float) UINT16_MAX); // Ensure that the next line won't overflow.
+  uint16_t distanceInt = (uint16_t) distance;
 
   serialWrite(commandId, '>', String(distanceInt));
 
