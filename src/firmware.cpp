@@ -198,6 +198,28 @@ static CommandError ultrasound_read(int commandId, String argument) {
   return OK;
 }
 
+static CommandError custom(int commandId, String argument) {
+  // You can add logic for your own custom commands here.
+
+  // argument is the full string passed to r.servo_board.custom_command() in the
+  // API. You can use the pop_option function to get successive space-separated
+  // words from the string.
+
+  // You can return information to the main robot code by calling serialWrite:
+  //   serialWrite(commandId, '>', "your string");
+  // commandId is a special value that identifies which command this line of
+  // output belongs to. '>' indicates that this line contains a return values,
+  // as opposed to a status code or debug message.
+
+  // This function should either return OK if no error occurred, or
+  // COMMAND_ERROR("message") if an error did occur.
+
+  // For more tips see the handlers for other commands above; read_pin is a
+  // good place to start.
+
+  return COMMAND_ERROR("no custom behaviour implemented yet!");
+}
+
 static CommandError get_version(int commandId, String argument) {
   serialWrite(commandId, '>', FIRMWARE_VERSION);
   return OK;
@@ -212,6 +234,7 @@ static const CommandHandler commands[] = {
   CommandHandler("gpio-read", &read_pin, "get digital input from GPIO pin"),
   CommandHandler("analogue-read", &analogue_read, "get all analogue inputs"),
   CommandHandler("ultrasound-read", &ultrasound_read, "read an ultrasound sensor <trigger-pin> <echo-pin>"),
+  CommandHandler("custom", &custom, "custom command");
 };
 
 static void serialWrite(int commandId, char lineType, const String& str) {
