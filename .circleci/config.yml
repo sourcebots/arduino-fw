@@ -1,0 +1,43 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: debian:latest
+    steps:
+      - run:
+          name: Install required packages
+          command: |
+            apt-get update -y
+            apt-get install -y curl git make python-setuptools tar
+      - run:
+          name: Install Arduino platform
+          command: |
+            cd /tmp
+            curl --silent https://downloads.arduino.cc/arduino-1.8.5-linux64.tar.xz | tar --xz --extract
+            mv arduino-1.8.5 /usr/share/arduino
+      - run:
+          name: Install Arturo build tool
+          command: |
+            cd /tmp
+            git clone https://github.com/sourcebots/Arturo
+            cd Arturo
+            make install
+      - checkout:
+          name: Check out project source
+      - run:
+          name: Check out submodules
+          command: |
+            git submodule sync
+            git submodule update --init --recursive
+      - run:
+          name: Compile project
+          command: |
+            ano build -m uno --cxxflags="-std=gnu++11"
+      - store_artifacts:
+          name: Store artifact firmware.elf
+          path: .build_ano/uno/firmware.elf
+          destination: firmware.elf
+      - store_artifacts:
+          name: Store artifact firmware.hex
+          path: .build_ano/uno/firmware.hex
+          destination: firmware.hex
