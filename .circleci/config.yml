@@ -12,16 +12,13 @@ jobs:
       - run:
           name: Install Arduino platform
           command: |
-            cd /tmp
-            curl --silent https://downloads.arduino.cc/arduino-1.8.5-linux64.tar.xz | tar --xz --extract
-            mv arduino-1.8.5 /usr/share/arduino
+            curl --silent https://downloads.arduino.cc/arduino-1.8.5-linux64.tar.xz | tar --directory=/tmp --xz --extract
+            mv /tmp/arduino-1.8.5 /usr/share/arduino
       - run:
           name: Install Arturo build tool
           command: |
-            cd /tmp
-            git clone https://github.com/sourcebots/Arturo
-            cd Arturo
-            make install
+            git -C /tmp clone https://github.com/sourcebots/Arturo
+            make --directory=/tmp/Arturo install
       - checkout:
           name: Check out project source
       - run:
