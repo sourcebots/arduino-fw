@@ -3,6 +3,8 @@ import serial
 class Arduino(object):
     def __init__(self, path):
         self.port = serial.Serial(path, 9600)
+        booted = self.port.readline()
+        assert booted == b'# booted\n'
         (self.fw_version,) = self._command('version')
 
     def set_led(self, state):
