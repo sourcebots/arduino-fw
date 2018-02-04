@@ -17,7 +17,7 @@ jobs:
       - run:
           name: Install Arturo build tool
           command: |
-            git -C /tmp clone https://github.com/sourcebots/Arturo
+            git clone https://github.com/sourcebots/Arturo /tmp/Arturo
             make --directory=/tmp/Arturo install
       - checkout:
           name: Check out project source
