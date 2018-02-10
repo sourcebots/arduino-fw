@@ -1,10 +1,9 @@
+#include <limits.h>
+
 #include <Adafruit_PWMServoDriver.h>
 
 // Multiplying by this converts round-trip duration in microseconds to distance to object in millimetres.
 static const float ULTRASOUND_COEFFICIENT = 1e-6 * 343.0 * 0.5 * 1e3;
-
-// Horrible hack because I can't include <climits> for some reason.
-static const unsigned int UINT_MAX = (unsigned int) -1;
 
 static const String FIRMWARE_VERSION = "SourceBots PWM/GPIO v0.0.1";
 
