@@ -59,6 +59,7 @@ CommandHandler::CommandHandler(String cmd, CommandError (*runner)(int, String), 
 }
 
 static void serialWrite(int commandId, char lineType, const String& str);
+static void serialWrite(int commandId, char lineType, FlashString str);
 
 static String pop_option(String& argument) {
   int separatorIndex = argument.indexOf(' ');
@@ -235,7 +236,7 @@ static const CommandHandler commands[] = {
   CommandHandler("ultrasound-read", &ultrasound_read, ULTRASOUND_READ_HELP),
 };
 
-static void serialWrite(int commandId, char lineType, const String& str) {
+static void serialWritePrefix(int commandId, char lineType) {
     if (commandId != 0) {
         Serial.write('@');
         Serial.print(commandId, DEC);
@@ -244,7 +245,15 @@ static void serialWrite(int commandId, char lineType, const String& str) {
 
     Serial.write(lineType);
     Serial.write(' ');
+}
 
+static void serialWrite(int commandId, char lineType, const String& str) {
+    serialWritePrefix(commandId, lineType);
+    Serial.println(str);
+}
+
+static void serialWrite(int commandId, char lineType, FlashString str) {
+    serialWritePrefix(commandId, lineType);
     Serial.println(str);
 }
 
