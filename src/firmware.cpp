@@ -66,12 +66,12 @@ class CommandHandler {
 public:
   String command;
   CommandError (*run)(int, String argument);
-  String helpMessage;
+  FlashString helpMessage;
 
-  CommandHandler(String cmd, CommandError (*runner)(int, String), String help);
+  CommandHandler(String cmd, CommandError (*runner)(int, String), FlashString help);
 };
 
-CommandHandler::CommandHandler(String cmd, CommandError (*runner)(int, String), String help)
+CommandHandler::CommandHandler(String cmd, CommandError (*runner)(int, String), FlashString help)
 : command(cmd), run(runner), helpMessage(help)
 {
 }
@@ -233,15 +233,24 @@ static CommandError get_version(int commandId, String argument) {
   return OK;
 }
 
+DEFINE_FLASH_STRING(HELP_HELP, "show information")
+DEFINE_FLASH_STRING(LED_HELP, "control the debug LED (on/off)")
+DEFINE_FLASH_STRING(SERVO_HELP, "control a servo <num> <width>")
+DEFINE_FLASH_STRING(VERSION_HELP, "get firmware version")
+DEFINE_FLASH_STRING(GPIO_WRITE_HELP, "set output from GPIO pin")
+DEFINE_FLASH_STRING(GPIO_READ_HELP, "get digital input from GPIO pin")
+DEFINE_FLASH_STRING(ANALOGUE_READ_HELP, "get all analogue inputs")
+DEFINE_FLASH_STRING(ULTRASOUND_READ_HELP, "read an ultrasound sensor <trigger-pin> <echo-pin>")
+
 static const CommandHandler commands[] = {
-  CommandHandler("help", &run_help, "show information"),
-  CommandHandler("led", &led, "control the debug LED (on/off)"),
-  CommandHandler("servo", &servo, "control a servo <num> <width>"),
-  CommandHandler("version", &get_version, "get firmware version"),
-  CommandHandler("gpio-write", &write_pin, "set output from GPIO pin"),
-  CommandHandler("gpio-read", &read_pin, "get digital input from GPIO pin"),
-  CommandHandler("analogue-read", &analogue_read, "get all analogue inputs"),
-  CommandHandler("ultrasound-read", &ultrasound_read, "read an ultrasound sensor <trigger-pin> <echo-pin>"),
+  CommandHandler("help", &run_help, HELP_HELP),
+  CommandHandler("led", &led, LED_HELP),
+  CommandHandler("servo", &servo, SERVO_HELP),
+  CommandHandler("version", &get_version, VERSION_HELP),
+  CommandHandler("gpio-write", &write_pin, GPIO_WRITE_HELP),
+  CommandHandler("gpio-read", &read_pin, GPIO_READ_HELP),
+  CommandHandler("analogue-read", &analogue_read, ANALOGUE_READ_HELP),
+  CommandHandler("ultrasound-read", &ultrasound_read, ULTRASOUND_READ_HELP),
 };
 
 static void serialWrite(int commandId, char lineType, const String& str) {
@@ -309,7 +318,7 @@ static CommandError run_help(int commandId, String argument) {
         s += " ";
       }
 
-      s += handler.helpMessage;
+      handler.helpMessage.append_to(s);
       serialWrite(commandId, '#', s);
     }
     return OK;
@@ -318,7 +327,7 @@ static CommandError run_help(int commandId, String argument) {
       const CommandHandler& handler = commands[i];
       if (handler.command == argument) {
         serialWrite(commandId, '#', handler.command);
-        serialWrite(commandId, '#', handler.helpMessage);
+        serialWrite(commandId, '#', handler.helpMessage.copy_to_ram());
         return OK;
       }
     }
