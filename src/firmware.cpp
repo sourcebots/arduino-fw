@@ -3,26 +3,7 @@
 #include <Adafruit_PWMServoDriver.h>
 
 // Encapsulates a string stored in program (Flash) memory instead of RAM.
-class FlashString {
-public:
-  // A pointer to the string in the program memory space. The functions in
-  // <avr/pgmspace.h> must be used to deference this pointer.
-  const char * progmem_c_str;
-private:
-  const __FlashStringHelper *as_flash_string_helper() const {
-    return reinterpret_cast<const __FlashStringHelper *>(progmem_c_str);
-  }
-public:
-  // Copy the string contents to RAM, returning it in the form of a String
-  // object.
-  String copy_to_ram() const {
-    return String(as_flash_string_helper());
-  }
-  // Append the string contents to the given String.
-  unsigned char append_to(String &other) const {
-    other.concat(as_flash_string_helper());
-  }
-};
+typedef const __FlashStringHelper * FlashString;
 
 // Define a constant named NAME of type FlashString, whose contents are the
 // string literal VALUE. This macro should not be followed by a semicolon when
@@ -31,7 +12,8 @@ public:
 // separate variable in order to annotate it as PROGMEM.
 #define DEFINE_FLASH_STRING(NAME, VALUE) \
   static const char NAME##_STR[] PROGMEM = VALUE; \
-  static constexpr FlashString NAME = { .progmem_c_str = NAME##_STR };
+  static constexpr FlashString NAME = (FlashString) \
+    reinterpret_cast<const __FlashStringHelper *>(NAME##_STR);
 
 // Multiplying by this converts round-trip duration in microseconds to distance to object in millimetres.
 static const float ULTRASOUND_COEFFICIENT = 1e-6 * 343.0 * 0.5 * 1e3;
@@ -229,7 +211,7 @@ static CommandError ultrasound_read(int commandId, String argument) {
 }
 
 static CommandError get_version(int commandId, String argument) {
-  serialWrite(commandId, '>', FIRMWARE_VERSION.copy_to_ram());
+  serialWrite(commandId, '>', FIRMWARE_VERSION);
   return OK;
 }
 
@@ -318,7 +300,7 @@ static CommandError run_help(int commandId, String argument) {
         s += " ";
       }
 
-      handler.helpMessage.append_to(s);
+      s += handler.helpMessage;
       serialWrite(commandId, '#', s);
     }
     return OK;
@@ -327,7 +309,7 @@ static CommandError run_help(int commandId, String argument) {
       const CommandHandler& handler = commands[i];
       if (handler.command == argument) {
         serialWrite(commandId, '#', handler.command);
-        serialWrite(commandId, '#', handler.helpMessage.copy_to_ram());
+        serialWrite(commandId, '#', handler.helpMessage);
         return OK;
       }
     }
