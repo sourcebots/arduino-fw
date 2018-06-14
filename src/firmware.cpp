@@ -36,7 +36,7 @@ public:
 // Multiplying by this converts round-trip duration in microseconds to distance to object in millimetres.
 static const float ULTRASOUND_COEFFICIENT = 1e-6 * 343.0 * 0.5 * 1e3;
 
-static const String FIRMWARE_VERSION = "SourceBots PWM/GPIO v0.0.1";
+DEFINE_FLASH_STRING(FIRMWARE_VERSION, "SourceBots PWM/GPIO v0.0.1")
 
 typedef String CommandError;
 
@@ -229,7 +229,7 @@ static CommandError ultrasound_read(int commandId, String argument) {
 }
 
 static CommandError get_version(int commandId, String argument) {
-  serialWrite(commandId, '>', FIRMWARE_VERSION);
+  serialWrite(commandId, '>', FIRMWARE_VERSION.copy_to_ram());
   return OK;
 }
 
