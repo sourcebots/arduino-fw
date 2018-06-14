@@ -2,9 +2,6 @@
 
 #include <Adafruit_PWMServoDriver.h>
 
-// Multiplying by this converts round-trip duration in microseconds to distance to object in millimetres.
-static const float ULTRASOUND_COEFFICIENT = 1e-6 * 343.0 * 0.5 * 1e3;
-
 static const String FIRMWARE_VERSION = "SourceBots PWM/GPIO v0.0.1";
 
 typedef String CommandError;
@@ -187,8 +184,10 @@ static CommandError ultrasound_read(int commandId, String argument) {
   pinMode(echoPin, INPUT);
 
   // Read return pulse.
-  float duration = (float) pulseIn(echoPin, HIGH);       // In microseconds.
-  float distance = duration * ULTRASOUND_COEFFICIENT;    // In millimetres.
+  static constexpr float SPEED_OF_SOUND = 343e-3; // millimetres per microsecond
+  float roundTripTime = (float) pulseIn(echoPin, HIGH); // microseconds
+  float roundTripDistance = roundTripTime * SPEED_OF_SOUND;
+  float distance = roundTripDistance / 2.0; // millimetres
   distance = constrain(distance, 0.0, (float) UINT16_MAX); // Ensure that the next line won't overflow.
   uint16_t distanceInt = (uint16_t) distance;
 
