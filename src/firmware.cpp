@@ -15,7 +15,7 @@ static Adafruit_PWMServoDriver SERVOS = Adafruit_PWMServoDriver();
 void setup() {
   // put your setup code here, to run once:
   pinMode(LED_BUILTIN, OUTPUT);
-  for (int pin = 2; pin <= 12; pin++) {
+  for (int pin = 2; pin <= 13; pin++) {
     pinMode(pin, INPUT);
   }
 
@@ -89,8 +89,8 @@ static CommandError write_pin(int commandId, String argument) {
 
   int pin = pinIDArg.toInt();
 
-  if (pin < 2 || pin > 12) {
-    return COMMAND_ERROR("pin must be between 2 and 12");
+  if (pin < 2 || pin > 13) {
+    return COMMAND_ERROR("pin must be between 2 and 13");
   }
 
   if (pinStateArg == "high") {
@@ -118,8 +118,8 @@ static CommandError read_pin(int commandId, String argument) {
 
   int pin = pinIDArg.toInt();
 
-  if (pin < 2 || pin > 12) {
-    return COMMAND_ERROR("pin must be between 2 and 12");
+  if (pin < 2 || pin > 13) {
+    return COMMAND_ERROR("pin must be between 2 and 13");
   }
 
   auto state = digitalRead(pin);
