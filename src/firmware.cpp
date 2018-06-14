@@ -59,17 +59,6 @@ static String pop_option(String& argument) {
 
 static CommandError run_help(int commandId, String argument);
 
-static CommandError led(int commandId, String argument) {
-  if (argument == "on") {
-    digitalWrite(LED_BUILTIN, HIGH);
-  } else if (argument == "off") {
-    digitalWrite(LED_BUILTIN, LOW);
-  } else {
-    return COMMAND_ERROR("unknown argument");
-  }
-  return OK;
-}
-
 static CommandError servo(int commandId, String argument) {
   String servoArg = pop_option(argument);
   String widthArg = pop_option(argument);
@@ -203,7 +192,6 @@ static CommandError get_version(int commandId, String argument) {
 
 static const CommandHandler commands[] = {
   CommandHandler("help", &run_help, "show information"),
-  CommandHandler("led", &led, "control the debug LED (on/off)"),
   CommandHandler("servo", &servo, "control a servo <num> <width>"),
   CommandHandler("version", &get_version, "get firmware version"),
   CommandHandler("gpio-write", &write_pin, "set output from GPIO pin"),
