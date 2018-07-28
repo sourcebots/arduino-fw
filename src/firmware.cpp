@@ -57,6 +57,19 @@ static void serialWrite(int commandId, char lineType, const String& str) {
 
 // The actual commands
 
+static void readAnaloguePinToSerial(int commandId, const String& name, int pin) {
+  int reading = analogRead(pin);
+  serialWrite(commandId, '>', name + " " + String(reading));
+}
+
+static CommandResponse analogueRead(int commandId, String argument) {
+  readAnaloguePinToSerial(commandId, "a0", A0);
+  readAnaloguePinToSerial(commandId, "a1", A1);
+  readAnaloguePinToSerial(commandId, "a2", A2);
+  readAnaloguePinToSerial(commandId, "a3", A3);
+  return OK;
+}
+
 static CommandResponse led(int commandId, String argument) {
   if (argument == "H") {
     digitalWrite(LED_BUILTIN, HIGH);
@@ -156,6 +169,7 @@ static CommandResponse writePin(int commandId, String argument) {
 // Process the commands and execute them.
 
 static const CommandHandler commands[] = {
+  CommandHandler('A', &analogueRead), // Read the analogue pins
   CommandHandler('L', &led), // Control the debug LED (H/L)
   CommandHandler('R', &readPin), // Read a digital pin <number>
   CommandHandler('S', &servo), // Control a servo <num> <width>
