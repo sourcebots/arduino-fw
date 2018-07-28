@@ -29,8 +29,19 @@ CommandHandler::CommandHandler(String cmd, CommandResponse (*runner)(int, String
   
 }
 
+static CommandResponse led(int commandId, String argument) {
+  if (argument == "H") {
+    digitalWrite(LED_BUILTIN, HIGH);
+  } else if (argument == "L") {
+    digitalWrite(LED_BUILTIN, LOW);
+  } else {
+    return COMMAND_ERROR("Unknown State");
+  }
+  return OK;
+}
+
 static const CommandHandler commands[] = {
-  
+  CommandHandler("L", &led),
 };
 
 static void serialWrite(int commandId, char lineType, const String& str) {
