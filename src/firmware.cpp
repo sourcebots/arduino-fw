@@ -57,16 +57,16 @@ static void serialWrite(int commandId, char lineType, const String& str) {
 
 // The actual commands
 
-static void readAnaloguePinToSerial(int commandId, const String& name, int pin) {
+static void readAnaloguePin(int commandId, const String& name, int pin) {
   int reading = analogRead(pin);
   serialWrite(commandId, '>', name + " " + String(reading));
 }
 
 static CommandResponse analogueRead(int commandId, String argument) {
-  readAnaloguePinToSerial(commandId, "a0", A0);
-  readAnaloguePinToSerial(commandId, "a1", A1);
-  readAnaloguePinToSerial(commandId, "a2", A2);
-  readAnaloguePinToSerial(commandId, "a3", A3);
+  readAnaloguePin(commandId, "a0", A0);
+  readAnaloguePin(commandId, "a1", A1);
+  readAnaloguePin(commandId, "a2", A2);
+  readAnaloguePin(commandId, "a3", A3);
   return OK;
 }
 
@@ -125,6 +125,46 @@ static CommandResponse servo(int commandId, String argument) {
   return OK;
 }
 
+static CommandResponse ultrasoundRead(int commandId, String argument) {
+  String triggerPinStr = pop_option(argument);
+  String echoPinStr = pop_option(argument);
+
+  if (argument.length() || !triggerPinStr.length() || !echoPinStr.length()) {
+    return COMMAND_ERROR("Bad Arguments");
+  }
+
+  int triggerPin = triggerPinStr.toInt();
+  int echoPin = echoPinStr.toInt();
+
+  if (triggerPin < 2 || triggerPin > 13 || echoPin < 2 || echoPin > 13) {
+    return COMMAND_ERROR("Pins must be between 2 and 13");
+  }
+
+  // Reset trigger pin.
+  pinMode(triggerPin, OUTPUT);
+  digitalWrite(triggerPin, LOW);
+  delayMicroseconds(2);
+
+  // Pulse trigger pin.
+  digitalWrite(triggerPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(triggerPin, LOW);
+
+  // Set echo pin to input now (we don't do it earlier, since it's allowable
+  // for triggerPin and echoPin to be the same pin).
+  pinMode(echoPin, INPUT);
+
+  // Read return pulse.
+  float duration = (float) pulseIn(echoPin, HIGH);       // In microseconds.
+  float distance = duration * ULTRASOUND_COEFFICIENT;    // In millimetres.
+  distance = constrain(distance, 0.0, (float) UINT_MAX); // Ensure that the next line won't overflow.
+  unsigned int distanceInt = (unsigned int) distance;
+
+  serialWrite(commandId, '>', String(distanceInt));
+
+  return OK;
+}
+
 static CommandResponse version(int commandId, String argument) {
   serialWrite(commandId, '>', FIRMWARE_VERSION);
   return OK;
@@ -135,13 +175,13 @@ static CommandResponse writePin(int commandId, String argument) {
   String pinStateArg = pop_option(argument);
 
   if (argument.length() || !pinIDArg.length() || !pinStateArg.length()) {
-    return COMMAND_ERROR("need exactly two arguments: <pin> <high/low/hi-z/pullup>");
+    return COMMAND_ERROR("Bad Arguments");
   }
 
   int pin = pinIDArg.toInt();
 
   if (pin < 2 || pin > 13) {
-    return COMMAND_ERROR("pin must be between 2 and 12");
+    return COMMAND_ERROR("pin must be between 2 and 13");
   }
 
   switch(pinStateArg.charAt(0)){
@@ -160,7 +200,7 @@ static CommandResponse writePin(int commandId, String argument) {
       pinMode(pin, INPUT); // High Impedance
       break;
     default:
-      return COMMAND_ERROR("Unknown pin mode.");
+      return COMMAND_ERROR("Unknown pin mode");
     
   }
   return OK;
@@ -173,6 +213,7 @@ static const CommandHandler commands[] = {
   CommandHandler('L', &led), // Control the debug LED (H/L)
   CommandHandler('R', &readPin), // Read a digital pin <number>
   CommandHandler('S', &servo), // Control a servo <num> <width>
+  CommandHandler('U', & ultrasoundRead), // Read an ultrasound distance
   CommandHandler('V', &version), // Get firmware version
   CommandHandler('W', &writePin), // Write to or  a GPIO pin <number> <state>
 };
@@ -272,7 +313,7 @@ void setup() {
   SERVOS.begin();
   SERVOS.setPWMFreq(50);
 
-  Serial.write("# Booted.\n");
+  Serial.write("# Booted\n");
 
 }
 
