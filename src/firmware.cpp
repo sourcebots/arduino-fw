@@ -17,13 +17,13 @@ static Adafruit_PWMServoDriver SERVOS = Adafruit_PWMServoDriver();
 
 class CommandHandler {
   public:
-    String command;
+    char command;
     CommandResponse (*run)(int, String argument);
 
-    CommandHandler(String cmd, CommandResponse(*runner)(int, String));
+    CommandHandler(char cmd, CommandResponse(*runner)(int, String));
 };
 
-CommandHandler::CommandHandler(String cmd, CommandResponse (*runner)(int, String))
+CommandHandler::CommandHandler(char cmd, CommandResponse (*runner)(int, String))
 : command(cmd), run(runner)
 {
   
@@ -35,13 +35,13 @@ static CommandResponse led(int commandId, String argument) {
   } else if (argument == "L") {
     digitalWrite(LED_BUILTIN, LOW);
   } else {
-    return COMMAND_ERROR("Unknown State");
+    return COMMAND_ERROR("Unknown State: " + argument);
   }
   return OK;
 }
 
 static const CommandHandler commands[] = {
-  CommandHandler("L", &led),
+  CommandHandler('L', &led),
 };
 
 static void serialWrite(int commandId, char lineType, const String& str) {
@@ -62,28 +62,24 @@ static void dispatch_command(int commandId, const class CommandHandler& handler,
   if (err == OK) {
     serialWrite(commandId, '+', "OK");
   } else {
-    serialWrite(commandId, '-', String("Error: ") + err);
+    serialWrite(commandId, '-', "Error: " + err);
   }
 }
 
 static void handle_actual_command(int commandId, const String& cmd) {
+  
+    char commandIssued = cmd.charAt(0);
+    
     for (int i = 0; i < sizeof(commands) / sizeof(CommandHandler); ++i) {
       const CommandHandler& handler = commands[i];
 
-      if (handler.command == cmd) {
-        dispatch_command(commandId, handler, "");
-        return;
-      } else if (cmd.startsWith(handler.command + " ")) {
-        dispatch_command(
-          commandId,
-          handler,
-          cmd.substring(handler.command.length() + 1)
-        );
+      if (handler.command == commandIssued) {
+        dispatch_command(commandId, handler, cmd.substring(1));
         return;
       }
     }
 
-    serialWrite(commandId, '-', String("Error, unknown command: ") + cmd);
+    serialWrite(commandId, '-', String("Error, unknown command: ") + commandIssued);
 }
 
 static void handle_command(const String& cmd) {
