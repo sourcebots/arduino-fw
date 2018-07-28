@@ -93,12 +93,49 @@ static CommandResponse version(int commandId, String argument) {
   return OK;
 }
 
+static CommandResponse writePin(int commandId, String argument) {
+  String pinIDArg = pop_option(argument);
+  String pinStateArg = pop_option(argument);
+
+  if (argument.length() || !pinIDArg.length() || !pinStateArg.length()) {
+    return COMMAND_ERROR("need exactly two arguments: <pin> <high/low/hi-z/pullup>");
+  }
+
+  int pin = pinIDArg.toInt();
+
+  if (pin < 2 || pin > 13) {
+    return COMMAND_ERROR("pin must be between 2 and 12");
+  }
+
+  switch(pinStateArg.charAt(0)){
+    case 'H':
+      pinMode(pin, OUTPUT);
+      digitalWrite(pin, HIGH);
+      break;
+    case 'L':
+      pinMode(pin, OUTPUT);
+      digitalWrite(pin, LOW);
+      break;
+    case 'P':
+      pinMode(pin, INPUT_PULLUP);
+      break;
+    case 'Z':
+      pinMode(pin, INPUT); // High Impedance
+      break;
+    default:
+      return COMMAND_ERROR("Unknown pin mode.");
+    
+  }
+  return OK;
+}
+
 // Process the commands and execute them.
 
 static const CommandHandler commands[] = {
   CommandHandler('L', &led), // Control the debug LED (H/L)
   CommandHandler('S', &servo), // Control a servo <num> <width>
   CommandHandler('V', &version), // Get firmware version
+  CommandHandler('W', &writePin), // Write to or  a GPIO pin <number> <state>
 };
 
 static void dispatch_command(int commandId, const class CommandHandler& handler, const String& argument) {
@@ -186,7 +223,7 @@ static void process_serial() {
 void setup() {
   // Setup the pins.
   pinMode(LED_BUILTIN, OUTPUT);
-  for (int pin = 2; pin <= 12; pin++) {
+  for (int pin = 2; pin <= 13; pin++) {
     pinMode(pin, INPUT);
   }
 
