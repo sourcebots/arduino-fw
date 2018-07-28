@@ -68,6 +68,30 @@ static CommandResponse led(int commandId, String argument) {
   return OK;
 }
 
+static CommandResponse readPin(int commandId, String argument) {
+  String pinIDArg = pop_option(argument);
+
+  if (argument.length() || !pinIDArg.length()) {
+    return COMMAND_ERROR("Bad number of arguments");
+  }
+
+  int pin = pinIDArg.toInt();
+
+  if (pin < 2 || pin > 13) {
+    return COMMAND_ERROR("pin must be between 2 and 13");
+  }
+
+  int state = digitalRead(pin);
+
+  if (state == HIGH) {
+    serialWrite(commandId, '>', "H");
+  } else {
+    serialWrite(commandId, '>', "L");
+  }
+
+  return OK;
+}
+
 static CommandResponse servo(int commandId, String argument) {
   String servoArg = pop_option(argument);
   String widthArg = pop_option(argument);
@@ -133,6 +157,7 @@ static CommandResponse writePin(int commandId, String argument) {
 
 static const CommandHandler commands[] = {
   CommandHandler('L', &led), // Control the debug LED (H/L)
+  CommandHandler('R', &readPin), // Read a digital pin <number>
   CommandHandler('S', &servo), // Control a servo <num> <width>
   CommandHandler('V', &version), // Get firmware version
   CommandHandler('W', &writePin), // Write to or  a GPIO pin <number> <state>
