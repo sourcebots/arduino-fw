@@ -7,9 +7,9 @@ static const float ULTRASOUND_COEFFICIENT = 1e-6 * 343.0 * 0.5 * 1e3;
 
 static const String FIRMWARE_VERSION = "SourceBots PWM/GPIO v2.0.0";
 
-typedef String CommandError;
+typedef String CommandResponse;
 
-static const CommandError OK = "";
+static const CommandResponse OK = "";
 
 #define COMMAND_ERROR(x) ((x))
 
@@ -18,12 +18,12 @@ static Adafruit_PWMServoDriver SERVOS = Adafruit_PWMServoDriver();
 class CommandHandler {
   public:
     String command;
-    CommandError (*run)(int, String argument);
+    CommandResponse (*run)(int, String argument);
 
-    CommandHandler(String cmd, CommandError(*runner)(int, String));
+    CommandHandler(String cmd, CommandResponse(*runner)(int, String));
 };
 
-CommandHandler::CommandHandler(String cmd, CommandError (*runner)(int, String))
+CommandHandler::CommandHandler(String cmd, CommandResponse (*runner)(int, String))
 : command(cmd), run(runner)
 {
   
