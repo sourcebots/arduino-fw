@@ -42,10 +42,10 @@ static String pop_option(String& argument) {
   }
 }
 
-static void serialWrite(int commandId, char lineType, const String& str) {
-    if (commandId != 0) {
+static void serialWrite(int requestID, char lineType, const String& str) {
+    if (requestID != 0) {
         Serial.write('@');
-        Serial.print(commandId, DEC);
+        Serial.print(requestID, DEC);
         Serial.write(' ');
     }
 
@@ -57,20 +57,20 @@ static void serialWrite(int commandId, char lineType, const String& str) {
 
 // The actual commands
 
-static void readAnaloguePin(int commandId, const String& name, int pin) {
+static void readAnaloguePin(int requestID, const String& name, int pin) {
   int reading = analogRead(pin);
-  serialWrite(commandId, '>', name + " " + String(reading));
+  serialWrite(requestID, '>', name + " " + String(reading));
 }
 
-static CommandResponse analogueRead(int commandId, String argument) {
-  readAnaloguePin(commandId, "a0", A0);
-  readAnaloguePin(commandId, "a1", A1);
-  readAnaloguePin(commandId, "a2", A2);
-  readAnaloguePin(commandId, "a3", A3);
+static CommandResponse analogueRead(int requestID, String argument) {
+  readAnaloguePin(requestID, "a0", A0);
+  readAnaloguePin(requestID, "a1", A1);
+  readAnaloguePin(requestID, "a2", A2);
+  readAnaloguePin(requestID, "a3", A3);
   return OK;
 }
 
-static CommandResponse led(int commandId, String argument) {
+static CommandResponse led(int requestID, String argument) {
   if (argument == "H") {
     digitalWrite(LED_BUILTIN, HIGH);
   } else if (argument == "L") {
@@ -81,7 +81,7 @@ static CommandResponse led(int commandId, String argument) {
   return OK;
 }
 
-static CommandResponse readPin(int commandId, String argument) {
+static CommandResponse readPin(int requestID, String argument) {
   String pinIDArg = pop_option(argument);
 
   if (argument.length() || !pinIDArg.length()) {
@@ -97,15 +97,15 @@ static CommandResponse readPin(int commandId, String argument) {
   int state = digitalRead(pin);
 
   if (state == HIGH) {
-    serialWrite(commandId, '>', "H");
+    serialWrite(requestID, '>', "H");
   } else {
-    serialWrite(commandId, '>', "L");
+    serialWrite(requestID, '>', "L");
   }
 
   return OK;
 }
 
-static CommandResponse servo(int commandId, String argument) {
+static CommandResponse servo(int requestID, String argument) {
   String servoArg = pop_option(argument);
   String widthArg = pop_option(argument);
 
@@ -125,7 +125,7 @@ static CommandResponse servo(int commandId, String argument) {
   return OK;
 }
 
-static CommandResponse ultrasoundRead(int commandId, String argument) {
+static CommandResponse ultrasoundRead(int requestID, String argument) {
   String triggerPinStr = pop_option(argument);
   String echoPinStr = pop_option(argument);
 
@@ -160,17 +160,17 @@ static CommandResponse ultrasoundRead(int commandId, String argument) {
   distance = constrain(distance, 0.0, (float) UINT_MAX); // Ensure that the next line won't overflow.
   unsigned int distanceInt = (unsigned int) distance;
 
-  serialWrite(commandId, '>', String(distanceInt));
+  serialWrite(requestID, '>', String(distanceInt));
 
   return OK;
 }
 
-static CommandResponse version(int commandId, String argument) {
-  serialWrite(commandId, '>', FIRMWARE_VERSION);
+static CommandResponse version(int requestID, String argument) {
+  serialWrite(requestID, '>', FIRMWARE_VERSION);
   return OK;
 }
 
-static CommandResponse writePin(int commandId, String argument) {
+static CommandResponse writePin(int requestID, String argument) {
   String pinIDArg = pop_option(argument);
   String pinStateArg = pop_option(argument);
 
@@ -218,16 +218,16 @@ static const CommandHandler commands[] = {
   CommandHandler('W', &writePin), // Write to or  a GPIO pin <number> <state>
 };
 
-static void dispatch_command(int commandId, const class CommandHandler& handler, const String& argument) {
-  auto err = handler.run(commandId, argument);
+static void dispatch_command(int requestID, const class CommandHandler& handler, const String& argument) {
+  auto err = handler.run(requestID, argument);
   if (err == OK) {
-    serialWrite(commandId, '+', "OK");
+    serialWrite(requestID, '+', "OK");
   } else {
-    serialWrite(commandId, '-', "Error: " + err);
+    serialWrite(requestID, '-', "Error: " + err);
   }
 }
 
-static void handle_actual_command(int commandId, const String& cmd) {
+static void handle_actual_command(int requestID, const String& cmd) {
   
     char commandIssued = cmd.charAt(0);
     
@@ -235,20 +235,20 @@ static void handle_actual_command(int commandId, const String& cmd) {
       const CommandHandler& handler = commands[i];
 
       if (handler.command == commandIssued) {
-        dispatch_command(commandId, handler, cmd.substring(1));
+        dispatch_command(requestID, handler, cmd.substring(1));
         return;
       }
     }
 
-    serialWrite(commandId, '-', String("Error, unknown command: ") + commandIssued);
+    serialWrite(requestID, '-', String("Error, unknown command: ") + commandIssued);
 }
 
 static void handle_command(const String& cmd) {
   // A command is prefixed with @ if an identifier is used to prevent race conditions
   if (cmd.startsWith("@")) {
     auto spaceIndex = cmd.indexOf(' ');
-    auto commandId = cmd.substring(1, spaceIndex).toInt();
-    handle_actual_command(commandId, cmd.substring(spaceIndex + 1));
+    auto requestID = cmd.substring(1, spaceIndex).toInt();
+    handle_actual_command(requestID, cmd.substring(spaceIndex + 1));
   } else {
     handle_actual_command(0, cmd);
   }
