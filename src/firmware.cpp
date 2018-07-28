@@ -2,24 +2,24 @@
 
 #include <Adafruit_PWMServoDriver.h>
 
+static Adafruit_PWMServoDriver SERVOS = Adafruit_PWMServoDriver();
+
+typedef String CommandResponse;
+static const CommandResponse OK = "";
+
+#define COMMAND_ERROR(x) ((x))
+
 // Multiplying by this converts round-trip duration in microseconds to distance to object in millimetres.
 static const float ULTRASOUND_COEFFICIENT = 1e-6 * 343.0 * 0.5 * 1e3;
 
 static const String FIRMWARE_VERSION = "SourceBots PWM/GPIO v2.0.0";
 
-typedef String CommandResponse;
-
-static const CommandResponse OK = "";
-
-#define COMMAND_ERROR(x) ((x))
-
-static Adafruit_PWMServoDriver SERVOS = Adafruit_PWMServoDriver();
+// Helpful things to process commands.
 
 class CommandHandler {
   public:
     char command;
     CommandResponse (*run)(int, String argument);
-
     CommandHandler(char cmd, CommandResponse(*runner)(int, String));
 };
 
@@ -29,20 +29,18 @@ CommandHandler::CommandHandler(char cmd, CommandResponse (*runner)(int, String))
   
 }
 
-static CommandResponse led(int commandId, String argument) {
-  if (argument == "H") {
-    digitalWrite(LED_BUILTIN, HIGH);
-  } else if (argument == "L") {
-    digitalWrite(LED_BUILTIN, LOW);
+static String pop_option(String& argument) {
+  int separatorIndex = argument.indexOf(' ');
+  if (separatorIndex == -1) {
+    String copy(argument);
+    argument = "";
+    return copy;
   } else {
-    return COMMAND_ERROR("Unknown State: " + argument);
+    String first_argument(argument.substring(0, separatorIndex));
+    argument = argument.substring(separatorIndex + 1);
+    return first_argument;
   }
-  return OK;
 }
-
-static const CommandHandler commands[] = {
-  CommandHandler('L', &led),
-};
 
 static void serialWrite(int commandId, char lineType, const String& str) {
     if (commandId != 0) {
@@ -56,6 +54,52 @@ static void serialWrite(int commandId, char lineType, const String& str) {
 
     Serial.println(str);
 }
+
+// The actual commands
+
+static CommandResponse led(int commandId, String argument) {
+  if (argument == "H") {
+    digitalWrite(LED_BUILTIN, HIGH);
+  } else if (argument == "L") {
+    digitalWrite(LED_BUILTIN, LOW);
+  } else {
+    return COMMAND_ERROR("Unknown LED State: " + argument);
+  }
+  return OK;
+}
+
+static CommandResponse servo(int commandId, String argument) {
+  String servoArg = pop_option(argument);
+  String widthArg = pop_option(argument);
+
+  if (argument.length() || !servoArg.length() || !widthArg.length()) {
+    return COMMAND_ERROR("Bad number of arguments.");
+  }
+
+  auto width = widthArg.toInt();
+  auto servo = servoArg.toInt();
+  if (servo < 0 || servo > 15) {
+    return COMMAND_ERROR("Servo out of range");
+  }
+  if (width != 0 && (width < 150 || width > 550)) {
+    return COMMAND_ERROR("Width must be 0 or between 150 and 550");
+  }
+  SERVOS.setPWM(servo, 0, width);
+  return OK;
+}
+
+static CommandResponse version(int commandId, String argument) {
+  serialWrite(commandId, '>', FIRMWARE_VERSION);
+  return OK;
+}
+
+// Process the commands and execute them.
+
+static const CommandHandler commands[] = {
+  CommandHandler('L', &led), // Control the debug LED (H/L)
+  CommandHandler('S', &servo), // Control a servo <num> <width>
+  CommandHandler('V', &version), // Get firmware version
+};
 
 static void dispatch_command(int commandId, const class CommandHandler& handler, const String& argument) {
   auto err = handler.run(commandId, argument);
@@ -83,7 +127,7 @@ static void handle_actual_command(int commandId, const String& cmd) {
 }
 
 static void handle_command(const String& cmd) {
-  // A commans is prefixed with @ if an identifier is used to prevent race conditions
+  // A command is prefixed with @ if an identifier is used to prevent race conditions
   if (cmd.startsWith("@")) {
     auto spaceIndex = cmd.indexOf(' ');
     auto commandId = cmd.substring(1, spaceIndex).toInt();
