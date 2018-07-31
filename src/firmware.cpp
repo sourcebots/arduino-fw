@@ -71,13 +71,20 @@ static CommandResponse analogueRead(int requestID, String argument) {
 }
 
 static CommandResponse led(int requestID, String argument) {
-  if (argument == "H") {
-    digitalWrite(LED_BUILTIN, HIGH);
-  } else if (argument == "L") {
-    digitalWrite(LED_BUILTIN, LOW);
-  } else {
-    return COMMAND_ERROR("Unknown LED State: " + argument);
+
+  char state = argument.charAt(0);
+
+  switch(state) {
+    case 'H':
+      digitalWrite(LED_BUILTIN, HIGH);
+      break;
+    case 'L':
+      digitalWrite(LED_BUILTIN, LOW);
+      break;
+    default:
+      return COMMAND_ERROR("Unknown LED State: " + argument);
   }
+  
   return OK;
 }
 
