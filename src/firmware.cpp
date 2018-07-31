@@ -58,8 +58,7 @@ static void serialWrite(int requestID, char lineType, const String& str) {
 // The actual commands
 
 static void readAnaloguePin(int requestID, const String& name, int pin) {
-  int reading = analogRead(pin);
-  serialWrite(requestID, '>', name + " " + String(reading));
+  serialWrite(requestID, '>', name + " " + String(analogRead(pin)));
 }
 
 static CommandResponse analogueRead(int requestID, String argument) {
