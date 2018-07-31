@@ -219,11 +219,11 @@ static const CommandHandler commands[] = {
 };
 
 static void dispatch_command(int requestID, const class CommandHandler& handler, const String& argument) {
-  auto err = handler.run(requestID, argument);
-  if (err == OK) {
+  auto response = handler.run(requestID, argument);
+  if (response == OK) {
     serialWrite(requestID, '+', "OK");
   } else {
-    serialWrite(requestID, '-', "Error: " + err);
+    serialWrite(requestID, '-', "Error: " + response);
   }
 }
 
