@@ -116,7 +116,7 @@ static CommandResponse servo(int requestID, String argument) {
   String widthArg = pop_option(argument);
 
   if (argument.length() || !servoArg.length() || !widthArg.length()) {
-    return COMMAND_ERROR("Bad number of arguments.");
+    return COMMAND_ERROR("Arguments Required: <num> <width>");
   }
 
   auto width = widthArg.toInt();
@@ -136,7 +136,7 @@ static CommandResponse ultrasoundRead(int requestID, String argument) {
   String echoPinStr = pop_option(argument);
 
   if (argument.length() || !triggerPinStr.length() || !echoPinStr.length()) {
-    return COMMAND_ERROR("Bad Arguments");
+    return COMMAND_ERROR("Arguments required: <trigger> <echo>");
   }
 
   int triggerPin = triggerPinStr.toInt();
@@ -181,7 +181,7 @@ static CommandResponse writePin(int requestID, String argument) {
   String pinStateArg = pop_option(argument);
 
   if (argument.length() || !pinIDArg.length() || !pinStateArg.length()) {
-    return COMMAND_ERROR("Bad Arguments");
+    return COMMAND_ERROR("Arguments Needed: <num> <state>");
   }
 
   int pin = pinIDArg.toInt();
