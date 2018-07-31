@@ -3,6 +3,7 @@ jobs:
   build:
     docker:
       - image: slocomptech/docker-arduino
+    working_directory: ~/project/src
     steps:
       - checkout
       - run:
@@ -10,4 +11,4 @@ jobs:
           command: arduino_install_lib https://github.com/adafruit/Adafruit-PWM-Servo-Driver-Library.git
       - run:
           name: Build Sketch
-          command: arduino_build_sketch .
+          command: arduino_build_sketch src.ino arduino:avr:uno
