@@ -3,7 +3,7 @@ jobs:
   build:
     docker:
       - image: slocomptech/docker-arduino
-    working_directory: ~/project/src
+    working_directory: ~/project/src/src
     steps:
       - checkout
       - run:
