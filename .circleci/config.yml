@@ -6,8 +6,8 @@ jobs:
     steps:
       - checkout
       - run:
-        name: Install Servo Library
-        command: arduino_install_lib https://github.com/adafruit/Adafruit-PWM-Servo-Driver-Library.git
+          name: Install Servo Library
+          command: arduino_install_lib https://github.com/adafruit/Adafruit-PWM-Servo-Driver-Library.git
       - run:
-        name: Build Sketch
-        command: arduino_build_sketch .
+          name: Build Sketch
+          command: arduino_build_sketch .
