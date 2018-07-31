@@ -24,3 +24,8 @@ Request IDs can be specified by prefacing your command with `@int`, for example 
 
 Read the analogue pins: `A`
 
+Turn on the debug LED: `LH`
+
+Read the ultrasound distance: `U4 5`
+
+Set pin 6 High: `W6 H`
