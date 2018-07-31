@@ -3,12 +3,11 @@ jobs:
   build:
     docker:
       - image: slocomptech/docker-arduino
-    working_directory: ~/project/src/src
     steps:
       - checkout
       - run:
-          name: Install Servo Library
-          command: arduino_install_lib https://github.com/adafruit/Adafruit-PWM-Servo-Driver-Library.git
+          name: Checkout submodules
+          command: git submodule sync && git submodule update --init
       - run:
           name: Build Sketch
-          command: arduino_build_sketch src.ino arduino:avr:uno
+          command: arduino-builder -hardware ${ARDUINO_HARDWARE} -tools ${ARDUINO_TOOLS}/avr -tools ${ARDUINO_TOOLS_BUILDER} -libraries ${ARDUINO_LIBS} -libraries libraries/ -fqbn arduino:avr:uno src/firmware.cpp
