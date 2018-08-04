@@ -319,7 +319,7 @@ void setup() {
   SERVOS.setPWMFreq(50);
 
   Serial.write("# Booted\n");
-
+  serialWrite(0, '#', FIRMWARE_VERSION);
 }
 
 void loop() {
