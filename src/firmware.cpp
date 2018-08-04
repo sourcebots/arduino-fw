@@ -30,6 +30,8 @@ CommandHandler::CommandHandler(char cmd, CommandResponse (*runner)(int, String))
 }
 
 static String pop_option(String& argument) {
+  argument.trim();
+  
   int separatorIndex = argument.indexOf(' ');
   if (separatorIndex == -1) {
     String copy(argument);
