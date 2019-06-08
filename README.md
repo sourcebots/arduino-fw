@@ -16,6 +16,7 @@ Request IDs can be specified by prefacing your command with `@int`, for example 
 | L       | Control the debug LED       | State {H, L} |                        |
 | R       | Read a digital pin          | Pin Number   |                        |
 | S       | Control a servo             | Servo Number | Width                  |
+| T       | Read a raw ultrasound timing | Trigger Pin  | Echo Pin               |
 | U       | Read an ultrasound distance | Trigger Pin  | Echo Pin               |
 | V       | Get the firmware version    |              |                        |
 | W       | Write to a Pin              | Pin Number   | Pin State {H, L, P, Z} |
