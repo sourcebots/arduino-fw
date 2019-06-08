@@ -165,7 +165,7 @@ static CommandResponse ultrasoundRawTiming(int requestID, String argument){
   // Read return pulse.
   float duration = (float) pulseIn(echoPin, HIGH);  // In microseconds.
 
-  serialWrite(requestID, '>', String(distanceInt));
+  serialWrite(requestID, '>', String(duration));
 
   return OK;
 }
@@ -258,7 +258,7 @@ static const CommandHandler commands[] = {
   CommandHandler('L', &led), // Control the debug LED (H/L)
   CommandHandler('R', &readPin), // Read a digital pin <number>
   CommandHandler('S', &servo), // Control a servo <num> <width>
-  CommandHandler('T', &ultrasoundRawTiming) // Read an ultrasound raw timing
+  CommandHandler('T', &ultrasoundRawTiming), // Read an ultrasound raw timing
   CommandHandler('U', &ultrasoundRead), // Read an ultrasound distance
   CommandHandler('V', &version), // Get firmware version
   CommandHandler('W', &writePin), // Write to or  a GPIO pin <number> <state>
@@ -367,4 +367,3 @@ void loop() {
     process_serial();
   }
 }
-
