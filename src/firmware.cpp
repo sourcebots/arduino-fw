@@ -133,6 +133,22 @@ static CommandResponse servo(int requestID, String argument) {
   return OK;
 }
 
+static void ultrasoundTriggerIO(int triggerPin, int echoPin){
+  // Reset trigger pin.
+  pinMode(triggerPin, OUTPUT);
+  digitalWrite(triggerPin, LOW);
+  delayMicroseconds(2);
+
+  // Pulse trigger pin.
+  digitalWrite(triggerPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(triggerPin, LOW);
+
+  // Set echo pin to input now (we don't do it earlier, since it's allowable
+  // for triggerPin and echoPin to be the same pin).
+  pinMode(echoPin, INPUT);
+}
+
 static CommandResponse ultrasoundReadTiming(int requestID, String argument){
   String triggerPinStr = pop_option(argument);
   String echoPinStr = pop_option(argument);
