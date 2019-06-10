@@ -164,19 +164,7 @@ static CommandResponse ultrasoundReadTiming(int requestID, String argument){
     return COMMAND_ERROR("Pins must be between 2 and 13");
   }
 
-  // Reset trigger pin.
-  pinMode(triggerPin, OUTPUT);
-  digitalWrite(triggerPin, LOW);
-  delayMicroseconds(2);
-
-  // Pulse trigger pin.
-  digitalWrite(triggerPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(triggerPin, LOW);
-
-  // Set echo pin to input now (we don't do it earlier, since it's allowable
-  // for triggerPin and echoPin to be the same pin).
-  pinMode(echoPin, INPUT);
+  ultrasoundTriggerIO(triggerPin, echoPin);
 
   // Read return pulse.
   float duration = (float) pulseIn(echoPin, HIGH);  // In microseconds.
@@ -201,19 +189,7 @@ static CommandResponse ultrasoundReadDistance(int requestID, String argument) {
     return COMMAND_ERROR("Pins must be between 2 and 13");
   }
 
-  // Reset trigger pin.
-  pinMode(triggerPin, OUTPUT);
-  digitalWrite(triggerPin, LOW);
-  delayMicroseconds(2);
-
-  // Pulse trigger pin.
-  digitalWrite(triggerPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(triggerPin, LOW);
-
-  // Set echo pin to input now (we don't do it earlier, since it's allowable
-  // for triggerPin and echoPin to be the same pin).
-  pinMode(echoPin, INPUT);
+  ultrasoundTriggerIO(triggerPin, echoPin);
 
   // Read return pulse.
   float duration = (float) pulseIn(echoPin, HIGH);       // In microseconds.
