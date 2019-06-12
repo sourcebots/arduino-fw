@@ -12,7 +12,7 @@ static const CommandResponse OK = "";
 // Multiplying by this converts round-trip duration in microseconds to distance to object in millimetres.
 static const float ULTRASOUND_COEFFICIENT = 1e-6 * 343.0 * 0.5 * 1e3;
 
-static const String FIRMWARE_VERSION = "SourceBots PWM/GPIO v2018.4.0";
+static const String FIRMWARE_VERSION = "SBDuino GPIO v2019.6.0";
 
 // Helpful things to process commands.
 
@@ -133,7 +133,23 @@ static CommandResponse servo(int requestID, String argument) {
   return OK;
 }
 
-static CommandResponse ultrasoundRead(int requestID, String argument) {
+static void ultrasoundTriggerIO(int triggerPin, int echoPin){
+  // Reset trigger pin.
+  pinMode(triggerPin, OUTPUT);
+  digitalWrite(triggerPin, LOW);
+  delayMicroseconds(2);
+
+  // Pulse trigger pin.
+  digitalWrite(triggerPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(triggerPin, LOW);
+
+  // Set echo pin to input now (we don't do it earlier, since it's allowable
+  // for triggerPin and echoPin to be the same pin).
+  pinMode(echoPin, INPUT);
+}
+
+static CommandResponse ultrasoundReadTiming(int requestID, String argument){
   String triggerPinStr = pop_option(argument);
   String echoPinStr = pop_option(argument);
 
@@ -148,19 +164,32 @@ static CommandResponse ultrasoundRead(int requestID, String argument) {
     return COMMAND_ERROR("Pins must be between 2 and 13");
   }
 
-  // Reset trigger pin.
-  pinMode(triggerPin, OUTPUT);
-  digitalWrite(triggerPin, LOW);
-  delayMicroseconds(2);
+  ultrasoundTriggerIO(triggerPin, echoPin);
 
-  // Pulse trigger pin.
-  digitalWrite(triggerPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(triggerPin, LOW);
+  // Read return pulse.
+  float duration = (float) pulseIn(echoPin, HIGH);  // In microseconds.
 
-  // Set echo pin to input now (we don't do it earlier, since it's allowable
-  // for triggerPin and echoPin to be the same pin).
-  pinMode(echoPin, INPUT);
+  serialWrite(requestID, '>', String(duration));
+
+  return OK;
+}
+
+static CommandResponse ultrasoundReadDistance(int requestID, String argument) {
+  String triggerPinStr = pop_option(argument);
+  String echoPinStr = pop_option(argument);
+
+  if (argument.length() || !triggerPinStr.length() || !echoPinStr.length()) {
+    return COMMAND_ERROR("Arguments required: <trigger> <echo>");
+  }
+
+  int triggerPin = triggerPinStr.toInt();
+  int echoPin = echoPinStr.toInt();
+
+  if (triggerPin < 2 || triggerPin > 13 || echoPin < 2 || echoPin > 13) {
+    return COMMAND_ERROR("Pins must be between 2 and 13");
+  }
+
+  ultrasoundTriggerIO(triggerPin, echoPin);
 
   // Read return pulse.
   float duration = (float) pulseIn(echoPin, HIGH);       // In microseconds.
@@ -221,7 +250,8 @@ static const CommandHandler commands[] = {
   CommandHandler('L', &led), // Control the debug LED (H/L)
   CommandHandler('R', &readPin), // Read a digital pin <number>
   CommandHandler('S', &servo), // Control a servo <num> <width>
-  CommandHandler('U', &ultrasoundRead), // Read an ultrasound distance
+  CommandHandler('T', &ultrasoundReadTiming), // Read an ultrasound raw timing
+  CommandHandler('U', &ultrasoundReadDistance), // Read an ultrasound distance
   CommandHandler('V', &version), // Get firmware version
   CommandHandler('W', &writePin), // Write to or  a GPIO pin <number> <state>
 };
