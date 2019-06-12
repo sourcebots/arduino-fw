@@ -72,7 +72,7 @@ static CommandResponse analogueRead(int requestID, String argument) {
 }
 
 static CommandResponse led(int requestID, String argument) {
-
+  pinMode(LED_BUILTIN, OUTPUT);
   char state = argument.charAt(0);
 
   switch (state) {
@@ -329,4 +329,3 @@ void loop() {
     process_serial();
   }
 }
-
