@@ -1,6 +1,6 @@
-# Servo Firmware
+# Arduino Firmware
 
-The firmware for SourceBots' servo board.
+The firmware for SourceBots' Arduino Uno board.
 
 It communicates using commands sent over the USB serial pins.
 
