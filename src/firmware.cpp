@@ -1,8 +1,8 @@
 #include <limits.h>
+#include <Arduino.h>
+#include <Servo.h>
 
-#include <Adafruit_PWMServoDriver.h>
-
-static Adafruit_PWMServoDriver SERVOS = Adafruit_PWMServoDriver();
+Servo singleServo;
 
 typedef String CommandResponse;
 static const CommandResponse OK = "";
@@ -31,7 +31,7 @@ CommandHandler::CommandHandler(char cmd, CommandResponse (*runner)(int, String))
 
 static String pop_option(String& argument) {
   argument.trim();
-  
+
   int separatorIndex = argument.indexOf(' ');
   if (separatorIndex == -1) {
     String copy(argument);
@@ -123,13 +123,27 @@ static CommandResponse servo(int requestID, String argument) {
 
   auto width = widthArg.toInt();
   auto servo = servoArg.toInt();
-  if (servo < 0 || servo > 15) {
-    return COMMAND_ERROR("Servo out of range");
+  if (servo != 0) {
+    return COMMAND_ERROR("Only servo 0 is supported");
   }
+
   if (width != 0 && (width < 150 || width > 550)) {
     return COMMAND_ERROR("Width must be 0 or between 150 and 550");
   }
-  SERVOS.setPWM(servo, 0, width);
+
+  // Map values to on time of PWM pulses
+  auto onTime = 1725 - ((width * 3) / 2) ;
+
+  // Clamp the values, just in case
+  if (onTime > 1500) {
+    onTime = 1500;
+  }
+  else if (onTime < 900) {
+    onTime = 900;
+  }
+
+  singleServo.writeMicroseconds(onTime);
+
   return OK;
 }
 
@@ -347,8 +361,7 @@ void setup() {
   Serial.begin(115200);
   Serial.setTimeout(5);
 
-  SERVOS.begin();
-  SERVOS.setPWMFreq(50);
+  singleServo.attach(9);
 
   Serial.write("# Booted\n");
   serialWrite(0, '#', FIRMWARE_VERSION);
