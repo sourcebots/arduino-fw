@@ -14,7 +14,8 @@ static const float ULTRASOUND_COEFFICIENT = 1e-6 * 343.0 * 0.5 * 1e3;
 
 static const String FIRMWARE_VERSION = "SBDuino GPIO v2019.8.0";
 
-static Adafruit_PN532 nfc(2, 3);
+#define NFC_IRQ 2
+static Adafruit_PN532 nfc(NFC_IRQ, 3);
 
 // Helpful things to process commands.
 
@@ -86,6 +87,56 @@ static CommandResponse led(int requestID, String argument) {
       break;
     default:
       return COMMAND_ERROR("Unknown LED State: " + argument);
+  }
+
+  return OK;
+}
+
+static bool readBlock(
+  const byte blockNumber,
+  const byte keyNumber,
+  byte keyData[6],
+  byte uid[],
+  byte *blockData) {
+  
+  bool success;
+  success = nfc.mifareclassic_AuthenticateBlock(uid, 4, blockNumber, keyNumber, keyData);
+  
+  if (!success) {
+    Serial.println("Authentication failed.");
+    return success;
+  }
+  
+  success = nfc.mifareclassic_ReadDataBlock(blockNumber, blockData);
+  if (!success) {
+    Serial.println("Reading block failed.");
+  }
+  return success;
+}
+
+static CommandResponse readNfc(int requestID, String argument) {
+  static byte keyA[] = {0x51, 0xA0, 0x12, 0x10, 0xC7, 0x0A};
+  static const CommandResponse noReadError = COMMAND_ERROR("Unable to read card");
+
+  if (digitalRead(NFC_IRQ) == LOW) {  // If there's a card present
+    byte uid[7];  // Need room for up to 7 bytes long
+    byte uidLength;
+
+    bool success = nfc.readDetectedPassiveTargetID(uid, &uidLength);
+    if (!success) return noReadError;
+    if (uidLength != 4) return COMMAND_ERROR("Card UID must be 4 bytes long");
+
+    byte blockData[16];
+    success = readBlock(24, 0, keyA, uid, blockData);
+    if (!success) return noReadError;
+
+    char studentID[9];
+    memcpy(studentID, blockData + 2, 8);  // Student ID starts at byte 2 and is 8 bytes long
+    studentID[8] = 0;
+    serialWrite(requestID, '>', studentID);
+
+  } else {
+    serialWrite(requestID, '>', "0");
   }
 
   return OK;
@@ -234,6 +285,7 @@ static CommandResponse writePin(int requestID, String argument) {
 static const CommandHandler commands[] = {
   CommandHandler('A', &analogueRead), // Read the analogue pins
   CommandHandler('L', &led), // Control the debug LED (H/L)
+  CommandHandler('N', &readNfc), // Read a student ID card
   CommandHandler('R', &readPin), // Read a digital pin <number>
   CommandHandler('S', &servo), // Control a servo <num> <width>
   CommandHandler('T', &ultrasoundReadTiming), // Read an ultrasound raw timing
