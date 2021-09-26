@@ -12,7 +12,7 @@ static const CommandResponse OK = "";
 // Multiplying by this converts round-trip duration in microseconds to distance to object in millimetres.
 static const float ULTRASOUND_COEFFICIENT = 1e-6 * 343.0 * 0.5 * 1e3;
 
-static const String FIRMWARE_VERSION = "SBDuino GPIO v2019.8.0";
+static const String FIRMWARE_VERSION = "SBDuino GPIO v2021.9.0";
 
 #define NFC_IRQ 2
 static Adafruit_PN532 nfc(NFC_IRQ, 3);
@@ -101,41 +101,30 @@ static bool readBlock(
   
   bool success;
   success = nfc.mifareclassic_AuthenticateBlock(uid, 4, blockNumber, keyNumber, keyData);
-  
-  if (!success) {
-    Serial.println("Authentication failed.");
-    return success;
-  }
+  if (!success) return success;
   
   success = nfc.mifareclassic_ReadDataBlock(blockNumber, blockData);
-  if (!success) {
-    Serial.println("Reading block failed.");
-  }
   return success;
 }
 
 static CommandResponse readNfc(int requestID, String argument) {
   static byte keyA[] = {0x51, 0xA0, 0x12, 0x10, 0xC7, 0x0A};
-  static const CommandResponse noReadError = COMMAND_ERROR("Unable to read card");
 
-  // If there's a card present, send the UID. Otherwise, send 0.
-  if (digitalRead(NFC_IRQ) == LOW) {
-    byte uid[7];  // Need room for up to 7 bytes long
-    byte uidLength;
-
-    bool success = nfc.readDetectedPassiveTargetID(uid, &uidLength);
-    if (!success) return noReadError;
+  // If there's a card present, send the student ID. Otherwise, send 0.
+  byte uid[7];  // Need room for up to 7 bytes long
+  byte uidLength;
+  bool success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength, 100);
+  if (success) {
     if (uidLength != 4) return COMMAND_ERROR("Card UID must be 4 bytes long");
 
     byte blockData[16];
     success = readBlock(24, 0, keyA, uid, blockData);
-    if (!success) return noReadError;
+    if (!success) return COMMAND_ERROR("Unable to read card");
 
     char studentID[9];
     memcpy(studentID, blockData + 2, 8);  // Student ID starts at byte 2 and is 8 bytes long
     studentID[8] = 0;
     serialWrite(requestID, '>', studentID);
-
   } else {
     serialWrite(requestID, '>', "0");
   }
@@ -392,7 +381,6 @@ void setup() {
     while (true);  // Crash
   }
   nfc.SAMConfig();
-  nfc.startPassiveTargetIDDetection(PN532_MIFARE_ISO14443A);
 
   Serial.write("# Booted\n");
   serialWrite(0, '#', FIRMWARE_VERSION);
