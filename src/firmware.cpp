@@ -1,8 +1,6 @@
 #include <limits.h>
 
-#include <Adafruit_PWMServoDriver.h>
-
-static Adafruit_PWMServoDriver SERVOS = Adafruit_PWMServoDriver();
+#include <Arduino.h>
 
 typedef String CommandResponse;
 static const CommandResponse OK = "";
@@ -12,7 +10,7 @@ static const CommandResponse OK = "";
 // Multiplying by this converts round-trip duration in microseconds to distance to object in millimetres.
 static const float ULTRASOUND_COEFFICIENT = 1e-6 * 343.0 * 0.5 * 1e3;
 
-static const String FIRMWARE_VERSION = "SBDuino GPIO v2019.6.0";
+static const String FIRMWARE_VERSION = "SBDuino GPIO v2019.8.0";
 
 // Helpful things to process commands.
 
@@ -114,23 +112,7 @@ static CommandResponse readPin(int requestID, String argument) {
 }
 
 static CommandResponse servo(int requestID, String argument) {
-  String servoArg = pop_option(argument);
-  String widthArg = pop_option(argument);
-
-  if (argument.length() || !servoArg.length() || !widthArg.length()) {
-    return COMMAND_ERROR("Arguments Required: <num> <width>");
-  }
-
-  auto width = widthArg.toInt();
-  auto servo = servoArg.toInt();
-  if (servo < 0 || servo > 15) {
-    return COMMAND_ERROR("Servo out of range");
-  }
-  if (width != 0 && (width < 150 || width > 550)) {
-    return COMMAND_ERROR("Width must be 0 or between 150 and 550");
-  }
-  SERVOS.setPWM(servo, 0, width);
-  return OK;
+  return COMMAND_ERROR("not implemented");
 }
 
 static void ultrasoundTriggerIO(int triggerPin, int echoPin){
@@ -346,9 +328,6 @@ void setup() {
 
   Serial.begin(115200);
   Serial.setTimeout(5);
-
-  SERVOS.begin();
-  SERVOS.setPWMFreq(50);
 
   Serial.write("# Booted\n");
   serialWrite(0, '#', FIRMWARE_VERSION);
