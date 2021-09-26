@@ -118,7 +118,8 @@ static CommandResponse readNfc(int requestID, String argument) {
   static byte keyA[] = {0x51, 0xA0, 0x12, 0x10, 0xC7, 0x0A};
   static const CommandResponse noReadError = COMMAND_ERROR("Unable to read card");
 
-  if (digitalRead(NFC_IRQ) == LOW) {  // If there's a card present
+  // If there's a card present, send the UID. Otherwise, send 0.
+  if (digitalRead(NFC_IRQ) == LOW) {
     byte uid[7];  // Need room for up to 7 bytes long
     byte uidLength;
 

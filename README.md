@@ -14,6 +14,7 @@ Request IDs can be specified by prefacing your command with `@int`, for example 
 |---------|-----------------------------|--------------|------------------------|
 | A       | Read the analogue pins      |              |                        |
 | L       | Control the debug LED       | State {H, L} |                        |
+| N       | Read a student ID card      |              |                        |
 | R       | Read a digital pin          | Pin Number   |                        |
 | S       | Control a servo             | Servo Number | Width                  |
 | T       | Read a triggered pulse delay| Trigger Pin  | Echo Pin               |
