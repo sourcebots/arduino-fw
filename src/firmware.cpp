@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 
+#include <Adafruit_PN532.h>
+
 typedef String CommandResponse;
 static const CommandResponse OK = "";
 
@@ -11,6 +13,8 @@ static const CommandResponse OK = "";
 static const float ULTRASOUND_COEFFICIENT = 1e-6 * 343.0 * 0.5 * 1e3;
 
 static const String FIRMWARE_VERSION = "SBDuino GPIO v2019.8.0";
+
+static Adafruit_PN532 nfc(2, 3);
 
 // Helpful things to process commands.
 
@@ -328,6 +332,14 @@ void setup() {
 
   Serial.begin(115200);
   Serial.setTimeout(5);
+
+  nfc.begin();
+  if (!nfc.getFirmwareVersion()) {
+    Serial.println("Didn't find PN53x RFID reader");
+    while (true);  // Crash
+  }
+  nfc.SAMConfig();
+  nfc.startPassiveTargetIDDetection(PN532_MIFARE_ISO14443A);
 
   Serial.write("# Booted\n");
   serialWrite(0, '#', FIRMWARE_VERSION);
