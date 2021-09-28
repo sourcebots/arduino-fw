@@ -107,9 +107,16 @@ static bool readBlock(
   return success;
 }
 
-static CommandResponse readNfc(int requestID, String argument) {
-  static byte keyA[] = {0x51, 0xA0, 0x12, 0x10, 0xC7, 0x0A};
+static void uidToKey6A(byte *uid, byte *key) {
+  key[0] = 0x51;
+  key[1] = uid[2] ^ 0x50;
+  key[2] = uid[0] ^ 0x50;
+  key[3] = 0x10;
+  key[4] = uid[1] ^ 0x4c;
+  key[5] = 0x0a;
+}
 
+static CommandResponse readNfc(int requestID, String argument) {
   // If there's a card present, send the student ID. Otherwise, send 0.
   byte uid[7];  // Need room for up to 7 bytes long
   byte uidLength;
@@ -117,6 +124,8 @@ static CommandResponse readNfc(int requestID, String argument) {
   if (success) {
     if (uidLength != 4) return COMMAND_ERROR("Card UID must be 4 bytes long");
 
+    byte keyA[6];
+    uidToKey6A(uid, keyA);
     byte blockData[16];
     success = readBlock(24, 0, keyA, uid, blockData);
     if (!success) return COMMAND_ERROR("Unable to read card");
