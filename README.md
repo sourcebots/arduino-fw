@@ -2,31 +2,32 @@
 
 The firmware for SourceBots' Arduino Uno board.
 
-It communicates using commands sent over the USB serial pins.
+It communicates using commands sent over USB serial.
 
-Commands consist of a single character, followed by up to two arguments. The command is not separated from the first argument, but the first and second argument are separated by a space.
-
-Request IDs can be specified by prefacing your command with `@int`, for example `@8335`. This is then returned with the command response and can be used to prevent race conditions.
+Commands consist of a string terminated by a newline character (\n).
+Commands consist of multiple parts seperated by a colon character.
 
 ## Commands
 
-| Command | Description                 | Parameter 1  | Parameter 2            |
-|---------|-----------------------------|--------------|------------------------|
-| A       | Read the analogue pins      |              |                        |
-| L       | Control the debug LED       | State {H, L} |                        |
-| R       | Read a digital pin          | Pin Number   |                        |
-| S       | Control a servo             | Servo Number | Width                  |
-| T       | Read a triggered pulse delay| Trigger Pin  | Echo Pin               |
-| U       | Read an ultrasound distance | Trigger Pin  | Echo Pin               |
-| V       | Get the firmware version    |              |                        |
-| W       | Write to a Pin              | Pin Number   | Pin State {H, L, P, Z} |
+| Command                           | Description                  | Parameters       |
+|-----------------------------------|------------------------------|------------------|
+| PIN:\<n>:MODE:GET?                | Read pin mode                | n = pin number   |
+| PIN:\<n>:MODE:SET:\<value>        | Set pin mode                 | n = pin number, value=INPUT/INPUT_PULLUP/OUTPUT|
+| PIN:\<n>:DIGITAL:GET?             | Digital read pin             | n = pin number   |
+| PIN:\<n>:DIGITAL:SET:\<value>     | Digital write pin            | n = pin number, value = 1/0 |
+| PIN:\<n>:ANALOG:GET?              | Analog read pin              | n = pin number   |
+| ULTRASOUND:\<pulse>:\<echo>:MEASURE?| Measure range from ultrasound| pulse = pulse pin, echo = echo pin |
 
 ## Example Commands
 
-Read the analogue pins: `A`
+Set pin mode to input and analog read pin
+```
+PIN:14:MODE:SET:INPUT
+PIN:14:ANALOG:GET?
+```
 
-Turn on the debug LED: `LH`
-
-Read the ultrasound distance: `U4 5`
-
-Set pin 6 High: `W6 H`
+Set pin to output and set it high
+```
+PIN:2:MODE:SET:OUTPUT
+PIN:2:DIGITAL:SET:1
+```
