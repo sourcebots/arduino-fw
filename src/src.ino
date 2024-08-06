@@ -125,6 +125,17 @@ void processCommand() {
 			}
 			else if (current_arg.equals("SET")) {
 				getSlice();
+				// Check if the pin is in the correct mode
+				int mode = getPinMode(pin);
+				if (mode != OUTPUT) {
+					if (mode == INPUT) {
+						Serial.print("NACK:Digital write is not supported in INPUT\n");
+					} else {
+						Serial.print("NACK:Digital write is not supported in INPUT_PULLUP\n");
+					}
+					Serial.print("\n");
+					return;
+				}
 				if (current_arg.equals("1")) {
 					// CMD: PIN:<n>:DIGITAL:SET:1
 					digitalWrite(pin, HIGH);
@@ -144,6 +155,17 @@ void processCommand() {
 			getSlice();
 			if (current_arg.equals("GET?")) {
 				// CMD: PIN:<n>:ANALOG:GET?
+				// Check if the pin is in the correct mode
+				int mode = getPinMode(pin);
+				if (mode != INPUT) {
+					if (mode == OUTPUT) {
+						Serial.print("NACK:Analog read is not supported in OUTPUT\n");
+					} else {
+						Serial.print("NACK:Analog read is not supported in INPUT_PULLUP\n");
+					}
+					Serial.print("\n");
+					return;
+				}
 				Serial.print(analogRead(pin));
 				Serial.print("\n");
 				return;
