@@ -133,7 +133,6 @@ void processCommand() {
 					} else {
 						Serial.print("NACK:Digital write is not supported in INPUT_PULLUP\n");
 					}
-					Serial.print("\n");
 					return;
 				}
 				if (current_arg.equals("1")) {
@@ -163,7 +162,6 @@ void processCommand() {
 					} else {
 						Serial.print("NACK:Analog read is not supported in INPUT_PULLUP\n");
 					}
-					Serial.print("\n");
 					return;
 				}
 				Serial.print(analogRead(pin));
