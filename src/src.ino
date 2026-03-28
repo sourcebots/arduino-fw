@@ -48,7 +48,7 @@ void processCommand() {
 
 	if (current_arg.equals("*IDN?")) {
 		// CMD: *IDN?
-		Serial.print("SourceBots:Arduino:X:2.0\n");
+		Serial.print("SourceBots:Arduino:X:2.1\n");
 		return;
 	}
 
