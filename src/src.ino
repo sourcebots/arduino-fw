@@ -48,7 +48,7 @@ void processCommand() {
 
 	if (current_arg.equals("*IDN?")) {
 		// CMD: *IDN?
-		Serial.print("SourceBots:Arduino:X:2.0\n");
+		Serial.print("SourceBots:Arduino:X:2.1\n");
 		return;
 	}
 
@@ -172,7 +172,7 @@ void processCommand() {
 			digitalWrite(pulse, LOW);
 
 			// measure the echo time on the echo pin
-			int duration = pulseIn(echo, HIGH, 60000);
+			long duration = pulseIn(echo, HIGH, 60000);
 			Serial.print(microsecondsToMm(duration));
 			Serial.print("\n");
 			return;
